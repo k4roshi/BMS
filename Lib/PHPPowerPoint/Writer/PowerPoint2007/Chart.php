@@ -273,10 +273,12 @@ class PHPPowerPoint_Writer_PowerPoint2007_Chart extends PHPPowerPoint_Writer_Pow
 			// Write layout
 			$this->_writeLayout($objWriter, $subject);
 
-			// Write chart
+			// Write chart MODDED BY POZ (added no 3d bar)
 			$chartType = $subject->getType();
 			if ($chartType instanceof PHPPowerPoint_Shape_Chart_Type_Bar3D) {
 				$this->_writeTypeBar3D($objWriter, $chartType);
+			} else if ($chartType instanceof PHPPowerPoint_Shape_Chart_Type_Bar) {
+				$this->_writeTypeBar($objWriter, $chartType);
 			} else if ($chartType instanceof PHPPowerPoint_Shape_Chart_Type_Pie3D) {
 				$this->_writeTypePie3D($objWriter, $chartType);
 			} else {
@@ -590,6 +592,163 @@ class PHPPowerPoint_Writer_PowerPoint2007_Chart extends PHPPowerPoint_Writer_Pow
 	protected function _writeTypeBar3D(PHPPowerPoint_Shared_XMLWriter $objWriter, PHPPowerPoint_Shape_Chart_Type_Bar3D $subject) {
 		// c:bar3DChart
 		$objWriter->startElement('c:bar3DChart');
+		
+			// c:barDir
+			$objWriter->startElement('c:barDir');
+			$objWriter->writeAttribute('val', 'col');
+			$objWriter->endElement();
+			
+			// c:grouping
+			$objWriter->startElement('c:grouping');
+			$objWriter->writeAttribute('val', 'clustered');
+			$objWriter->endElement();
+			
+			// Write series
+			$seriesIndex = 0;
+			foreach ($subject->getData() as $series) {
+				// c:ser
+				$objWriter->startElement('c:ser');
+				
+					// c:idx
+					$objWriter->startElement('c:idx');
+					$objWriter->writeAttribute('val', $seriesIndex);
+					$objWriter->endElement();
+					
+					// c:order
+					$objWriter->startElement('c:order');
+					$objWriter->writeAttribute('val', $seriesIndex);
+					$objWriter->endElement();
+					
+					// c:tx
+					$objWriter->startElement('c:tx');
+					$objWriter->writeElement('c:v', $series->getTitle());
+					$objWriter->endElement();
+					
+					// c:spPr
+					$objWriter->startElement('c:spPr');
+					
+						// Write fill
+						$this->_writeFill($objWriter, $series->getFill());
+					
+					$objWriter->endElement();
+					
+					// Write X axis data
+					$axisXData = array_keys($series->getValues());
+					
+					// c:cat
+					$objWriter->startElement('c:cat');
+					
+						// c:strLit / c:numLit
+						if (is_int($axisXData[0]) || is_float($axisXData[0])) {
+							$objWriter->startElement('c:numLit');
+						} else {
+							$objWriter->startElement('c:strLit');
+						}
+						
+							// c:ptCount
+							$objWriter->startElement('c:ptCount');
+							$objWriter->writeAttribute('val', count($axisXData));
+							$objWriter->endElement();
+							
+							// Add points
+							for ($i = 0; $i < count($axisXData); $i++) {
+								// c:pt
+								$objWriter->startElement('c:pt');
+								$objWriter->writeAttribute('idx', $i);
+								$objWriter->writeElement('c:v', $axisXData[$i]);
+								$objWriter->endElement();
+							}
+			
+						$objWriter->endElement();
+					
+					$objWriter->endElement();
+					
+					// Write Y axis data
+					$axisYData = array_values($series->getValues());
+					
+					// c:val
+					$objWriter->startElement('c:val');
+					
+						// c:strLit / c:numLit
+						if (is_int($axisYData[0]) || is_float($axisYData[0])) {
+							$objWriter->startElement('c:numLit');
+						} else {
+							$objWriter->startElement('c:strLit');
+						}
+						
+							// c:ptCount
+							$objWriter->startElement('c:ptCount');
+							$objWriter->writeAttribute('val', count($axisYData));
+							$objWriter->endElement();
+							
+							// Add points
+							for ($i = 0; $i < count($axisYData); $i++) {
+								// c:pt
+								$objWriter->startElement('c:pt');
+								$objWriter->writeAttribute('idx', $i);
+								$objWriter->writeElement('c:v', $axisYData[$i]);
+								$objWriter->endElement();
+							}
+			
+						$objWriter->endElement();
+					
+					$objWriter->endElement();
+				
+				$objWriter->endElement();
+				
+				++$seriesIndex;
+			}
+
+			// c:dLbls
+			$objWriter->startElement('c:dLbls');
+			
+				// c:showVal
+				$objWriter->startElement('c:showVal');
+				$objWriter->writeAttribute('val', '1');
+				$objWriter->endElement();
+				
+			$objWriter->endElement();
+			
+			// c:gapWidth
+			$objWriter->startElement('c:gapWidth');
+			$objWriter->writeAttribute('val', '75');
+			$objWriter->endElement();
+			
+			// c:shape
+			$objWriter->startElement('c:shape');
+			$objWriter->writeAttribute('val', 'box');
+			$objWriter->endElement();
+			
+			// c:axId
+			$objWriter->startElement('c:axId');
+			$objWriter->writeAttribute('val', '52743552');
+			$objWriter->endElement();
+			
+			// c:axId
+			$objWriter->startElement('c:axId');
+			$objWriter->writeAttribute('val', '52749440');
+			$objWriter->endElement();
+			
+			// c:axId
+			$objWriter->startElement('c:axId');
+			$objWriter->writeAttribute('val', '0');
+			$objWriter->endElement();
+		
+		$objWriter->endElement();
+	}
+	
+	// MOD by poz
+	
+	/**
+	 * Write Type Bar
+	 *
+	 * @param 	PHPPowerPoint_Shared_XMLWriter 			$objWriter 		XML Writer
+	 * @param 	PHPPowerPoint_Shape_Chart_Type_Bar	$subject
+	 * @throws 	Exception
+	 */
+	protected function _writeTypeBar(PHPPowerPoint_Shared_XMLWriter $objWriter, PHPPowerPoint_Shape_Chart_Type_Bar $subject) {
+		// c:barChart
+		$objWriter->startElement('c:barChart');
 		
 			// c:barDir
 			$objWriter->startElement('c:barDir');
