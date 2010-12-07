@@ -19,7 +19,7 @@ class Data {
 	public function parse($text){
 		
 	}
-	
+/*	
 	// testing stuff
 	public function parsetest($text){
 		$this->antimicrobics->add(new Antimicrobic('Levofloxacin'));
@@ -27,6 +27,7 @@ class Data {
 		$this->antimicrobics->add(new Antimicrobic('Pippo'));
 		$this->antimicrobics->get(1)->value['0,015'] = 55;
 	}
+*/
 }
 
 class Antimicrobic {
@@ -35,7 +36,7 @@ class Antimicrobic {
 	
 	public $name;
 	
-	// inizializziamo tutto a 0, pi comodo.
+	// inizializziamo tutto a 0, piï¿½ comodo.
 	public $value = array('0,002' => 0, '0,004'=> 0, '0,008'=> 0, '0,015'=> 0, 
 	'0,03'=> 0, '0,06'=> 0, '0,12'=> 0, '0,25'=> 0, '0,5'=> 0, '1'=> 0, '2'=> 0, 
 	'4'=> 0, '8'=> 0, '16'=> 0, '32'=> 0, '64'=> 0, '128'=> 0, '256'=> 0, '512'=> 0, 
@@ -57,11 +58,11 @@ class Antimicrobic {
 
 }
 
-
+/*
 // testing stuff
 $test= new Data('Staffilococco');
 $test->parsetest('c');
 
 echo $test;
-
+*/
 ?>
