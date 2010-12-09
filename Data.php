@@ -6,9 +6,14 @@ class Data {
 	
 	public function __construct($name){
 		$this->name = $name;
-		// possiamo anche usare un array come dizionario nome antibiotico -> oggetto antibicrobic
 		$this->antimicrobics = new LinkedList();
 	}
+	
+	
+	public function add_antimicrobic($antimicrobic) {
+		$this->antimicrobics->add($antimicrobic);
+	}
+	
 	
 	public function __toString(){
 		$tmp =  "$this->name\n";
@@ -16,27 +21,12 @@ class Data {
 		$tmp .= $this->antimicrobics;
 		return $tmp;
 	}
-	
-	public function parse($text){
-		
-	}
-/*	
-	// testing stuff
-	public function parsetest($text){
-		$this->antimicrobics->add(new Antimicrobic('Levofloxacin'))
-							->get(0)->value['0,004'] = 33;
-		$this->antimicrobics->get(0)->bp = "0,5";
-		$this->antimicrobics->get(0)->blue = "0,12";
-		$this->antimicrobics->add(new Antimicrobic('Pippo'))
-							->get(1)->value['0,015'] = 55;
-
-	}
-*/
 }
+
 
 class Antimicrobic {
 	
-	// sarebbe meglio farle private e fare i metodi set get, ma non ho voglia.
+	//TODO sarebbe meglio farle private e fare i metodi set get, ma non ho voglia.
 	
 	public $name;
 	
@@ -52,6 +42,24 @@ class Antimicrobic {
 		$this->name = $name;
 	}
 	
+	
+	public function set_value($tick, $value) {
+		// Replace asterisk (used as a marker in the source document)
+		$value = str_replace('*', '', $value);
+		
+		if (!isset($this->value[$tick]) || !is_numeric($value))
+			return false;
+		
+		$this->value[$tick] = $value;
+		return true;
+	}
+	
+	
+	public function sanity_check() {
+		return true;	//TODO se i valori sono a blocchi contigui. Poi prova con sogli più basse.
+	}
+	
+	
 	public function __toString(){
 		$tmp = "$this->name\n";
 		$tmp .= "Ultima casella blu: $this->blue\n";
@@ -65,11 +73,4 @@ class Antimicrobic {
 
 }
 
-/*
-// testing stuff
-$test= new Data('Staffilococco');
-$test->parsetest('c');
-
-echo $test;
-*/
 ?>
