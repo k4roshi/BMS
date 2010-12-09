@@ -15,6 +15,10 @@ unset($index);
 $slideList = $xp->query('/key:presentation/key:slide-list');
 $slideTree = $slideList->item(0);
 
+
+
+// TESTING
+
 // Stringhe di xpath per navigazione
 /*
 $slide1 = '/key:presentation/key:slide-list/key:slide[@sfa:ID="BGSlide-1"]';
