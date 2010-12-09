@@ -6,6 +6,7 @@
 	// Importa albero
 	// Popola tabelle
 	// Rimuovi tabelle inutili
+	// (^ e v sono invertibili, bisogna valutare cos'è meglio)
 	// Popola grafici
 	// Rimuovi grafici inutili
 	// salva Tmp/index.apxl

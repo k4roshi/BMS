@@ -12,7 +12,7 @@ class Data {
 	
 	public function __toString(){
 		$tmp =  "$this->name\n";
-		$tmp .= '=====================';
+		$tmp .= "=====================\n";
 		$tmp .= $this->antimicrobics;
 		return $tmp;
 	}
@@ -20,18 +20,18 @@ class Data {
 	public function parse($text){
 		
 	}
-/*	
+	
 	// testing stuff
 	public function parsetest($text){
-		$this->antimicrobics->add(new Antimicrobic('Levofloxacin'))
-							->get(0)->value['0,004'] = 33;
-		$this->antimicrobics->get(0)->bp = "0,5";
+		$this->antimicrobics->add(new Antimicrobic('Levofloxacin'));
+		$this->antimicrobics->get(0)->value['0,004'] = 33;
+		$this->antimicrobics->get(0)->bp = '0,5';
 		$this->antimicrobics->get(0)->blue = "0,12";
-		$this->antimicrobics->add(new Antimicrobic('Pippo'))
-							->get(1)->value['0,015'] = 55;
+		$this->antimicrobics->add(new Antimicrobic('Pippo'));
+		$this->antimicrobics->get(1)->value['0,015'] = 55;
 
 	}
-*/
+
 }
 
 class Antimicrobic {
@@ -51,12 +51,22 @@ class Antimicrobic {
 	public function __construct($name) {
 		$this->name = $name;
 	}
-	
+
+	public function getBpPosition(){
+		$array = array_keys($this->value);
+		while ($i = current($array)) {
+			if ($i== $this->bp) {
+				return key($array);
+			}
+			next($array);
+		}
+	}
+
 	public function __toString(){
 		$tmp = "$this->name\n";
 		$tmp .= "Ultima casella blu: $this->blue\n";
 		$tmp .= "Break Point: $this->bp\n";
-		$tmp .= '=====================';
+		$tmp .= "-----------------------\n";
 		foreach ($this->value as $level => $entry){
 			$tmp .= "$level = $entry\n"; 
 		}
@@ -65,11 +75,13 @@ class Antimicrobic {
 
 }
 
-/*
+
 // testing stuff
 $test= new Data('Staffilococco');
 $test->parsetest('c');
 
-echo $test;
-*/
+//echo $test;
+
+echo $test->antimicrobics->get(0)->getBpPosition();
+
 ?>
