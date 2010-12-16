@@ -1,26 +1,23 @@
 <?
-require_once('Library/PHPExcel/Classes/PHPExcel.php');
+require_once ('Parser.php');
 
-$objPHPExcel = PHPExcel_IOFactory::load("EUCAST.xlsx");
 
-//	print_r ($objPHPExcel);
+//$test_parser = new Parser('./prova3.pdf');
+//$test_parser = new Parser('/home/michele/tmp/vise ipad/prove esportazioni swinEpid/aureo 2009 tutti materiali.pdf');
+//$test_parser = new Parser('/home/michele/tmp/vise ipad/prove esportazioni swinEpid/e coli.pdf');
 
-$r=2;
-while ( "" != ($c_germ = $objPHPExcel->getActiveSheet()->getCell('B'.$r)->getValue()) ) {
-	
-	if (strcasecmp($c_germ, $germ)) {
-		$c_antimicrobic = $objPHPExcel->getActiveSheet()->getCell('C'.$r)->getValue();
-		if (strcasecmp($c_antimicrobic, $antimicrobic)) {
-			$out['blue'] = $objPHPExcel->getActiveSheet()->getCell('D'.$r)->getValue();
-			$out['bp'] = $objPHPExcel->getActiveSheet()->getCell('E'.$r)->getValue();
-			return $out;
-		}
-	}
-}
+$test_data = new Data('Pippo');
+$test_data->parsetest();
 
-if (isset($a))
-	echo "T";
-else
-	echo "F";
+print_r($test_data->antimicrobics->get(2)->value);
+print_r($test_data->antimicrobics->get(3)->value);
+
+$keys = array_keys($test_data->antimicrobics->get(3)->value);
+foreach ($keys as $k)
+	$test_data->antimicrobics->get(2)->value[$k] += $test_data->antimicrobics->get(3)->value[$k];
+
+print_r($test_data->antimicrobics->get(2)->value);
+
+//$test_data->fix_percentage();
 
 ?>
