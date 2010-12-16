@@ -12,7 +12,6 @@ class apxlWriter {
 		// Elimina whitespace se presente
 		$this->index = preg_replace("/>\s+</", "><", $this->index);
 
-
 		// Oggetti DOM, impostazioni e creazione Xpath
 		$this->dom = new DOMDocument();
 		$this->dom->loadXML($this->index);
@@ -60,7 +59,7 @@ class apxlWriter {
 		for ($table = 1; $table <= $nrTables; $table++) {
 			//*  vai alla slide
 			// *  vai alla tabella (1)  /key:page/sf:layers/sf:layer[@sfa:ID="SFDLayerInfo-31"]/sf:drawables[@sfa:ID="NSMutableArray-1644"]/sf:tabular-info
-			// *  vai a sf:geometry/sf:position setta sfa:y y = (1024 - Dimensione Tabella) /2
+			// *  vai a sf:geometry/sf:position setta sfa:y y = (768 - Dimensione Tabella) /2
 			$tableDimension = 48 * $ElementsTable[$table]+1;
 			$y = ceil ((768 - $tableDimension)/2);
 			$gNode = $this->getToGeometry($table, $tableProperties[$table]['layer']);
@@ -91,7 +90,8 @@ class apxlWriter {
 				for ($i = 0 ; $i < $ElementsTable[$table]; $i++) {
 					$tmp = $i+$ElementsTable[$table-1]+$ElementsTable[$table-2]+1;
 					$item = $this->germ->antimicrobics->get($i+$ElementsTable[$table-1]+$ElementsTable[$table-2]);
-					if ($item->getBpPosition() != $j-1) {
+					$bpPos = $item->getBpPosition();
+					if ($bpPos !== $j-1) {
 						// normale
 						$borderStyle = $this->styledColumnNode($tableProperties[$table]['normalColumnStyle'], $i+1);
 					} else {
@@ -132,7 +132,7 @@ class apxlWriter {
 				foreach ($item->value as $value){
 					$insert = $value;
 					if ($value == '0')
-					$insert = '';
+						$insert = '';
 					$child = $dSource->firstChild;
 					$child->setAttribute('sfa:s', $insert);
 					$dSource = $dSource->nextSibling;
@@ -164,9 +164,16 @@ class apxlWriter {
 			$bluePoint = $item->getLastBluePosition();
 			$breakPoint = $item->getBpPosition();
 			// setta barra BP
-			$BPNode = $this->getToBPBar($chartIndex);
-			$xPos = 81 + (49.5 * $breakPoint);
-			$BPNode->setAttribute('sfa:x', $xPos);
+			if ($breakPoint === null){
+				// non settato, rimuovo
+				$BPNode = $this->getToBP($chartIndex);
+				$this->removeNode($BPNode);
+			} else {
+				// settato, aggiorno posizione
+				$BPNode = $this->getToBPBar($chartIndex);
+				$xPos = 81 + (49.5 * $breakPoint);
+				$BPNode->setAttribute('sfa:x', $xPos);
+			}
 			// riempi dati in serie corrette
 			$gData = $this->getToGraphData($chartIndex);
 			$counter = 0;
@@ -197,7 +204,7 @@ class apxlWriter {
 
 	public function saveResult($outputFile){
 		$this->dom->save($outputFile);
-		echo "Saved!";
+		echo "Saved!\n";
 	}
 
 	// Funzioni private
@@ -216,64 +223,61 @@ class apxlWriter {
 	}
 
 	private function getToGrid($slide, $layerInfo){
-		
 		$style = '/key:presentation/key:slide-list/key:slide[@sfa:ID="BGSlide-'.$slide.'"]/key:page/sf:layers/sf:layer[@sfa:ID="'.$layerInfo.'"]/sf:drawables/sf:tabular-info/sf:tabular-model/sf:grid';
 		$style = $this->xp->query($style);
 		return $style->item(0);
 	}
 
 	private function getToVStyles($slide, $layerInfo){
-		
 		$style = '/key:presentation/key:slide-list/key:slide[@sfa:ID="BGSlide-'.$slide.'"]/key:page/sf:layers/sf:layer[@sfa:ID="'.$layerInfo.'"]/sf:drawables/sf:tabular-info/sf:tabular-model/sf:grid/sf:vertical-gridline-styles';
 		$style = $this->xp->query($style);
 		return $style->item(0);
 	}
 
 	private function getToHStyles($slide, $layerInfo){
-		
 		$style = '/key:presentation/key:slide-list/key:slide[@sfa:ID="BGSlide-'.$slide.'"]/key:page/sf:layers/sf:layer[@sfa:ID="'.$layerInfo.'"]/sf:drawables/sf:tabular-info/sf:tabular-model/sf:grid/sf:horizontal-gridline-styles';
 		$style = $this->xp->query($style);
 		return $style->item(0);
 	}
 
 	private function getToHSingleStyle($slide, $layerInfo, $number){
-		
 		$row = '/key:presentation/key:slide-list/key:slide[@sfa:ID="BGSlide-'.$slide.'"]/key:page/sf:layers/sf:layer[@sfa:ID="'.$layerInfo.'"]/sf:drawables/sf:tabular-info/sf:tabular-model/sf:grid/sf:horizontal-gridline-styles/sf:style-run[@sf:gridline-index="'.$number.'"]';
 		$row = $this->xp->query($row);
 		return $row->item(0);
 	}
 
 	private function getToRows($slide, $layerInfo){
-		
 		$rows = '/key:presentation/key:slide-list/key:slide[@sfa:ID="BGSlide-'.$slide.'"]/key:page/sf:layers/sf:layer[@sfa:ID="'.$layerInfo.'"]/sf:drawables/sf:tabular-info/sf:tabular-model/sf:grid/sf:rows';
 		$rows = $this->xp->query($rows);
 		return $rows->item(0);
 	}
 
 	private function getToDatasource($slide, $layerInfo){
-		
 		$rows = '/key:presentation/key:slide-list/key:slide[@sfa:ID="BGSlide-'.$slide.'"]/key:page/sf:layers/sf:layer[@sfa:ID="'.$layerInfo.'"]/sf:drawables/sf:tabular-info/sf:tabular-model/sf:grid/sf:datasource/sf:t[2]';
 		$rows = $this->xp->query($rows);
 		return $rows->item(0);
 	}
 
 	private function getToGraphData($slide){
-		
 		$gData = '/key:presentation/key:slide-list/key:slide[@sfa:ID="BGSlide-'.$slide.'"]/key:page/sf:layers/sf:layer[2]/sf:drawables/sf:chart-info/sf:chart-model/sf:chart-data/sf:mutable-array';
 		$gData = $this->xp->query($gData);
 		return $gData->item(0);
 	}
 
 	private function getToGraphName($slide){
-		
 		$gData = '/key:presentation/key:slide-list/key:slide[@sfa:ID="BGSlide-'.$slide.'"]/key:page/sf:layers/sf:layer[2]/sf:drawables/sf:shape/sf:text/sf:text-storage/sf:text-body/sf:p';
 		$gData = $this->xp->query($gData);
 		return $gData->item(0);
 	}
 
 	private function getToBPBar($slide){
-		
 		$BPData = '/key:presentation/key:slide-list/key:slide[@sfa:ID="BGSlide-'.$slide.'"]/key:page/sf:layers/sf:layer[2]/sf:drawables/sf:group/sf:geometry/sf:position';
+		$BPData = $this->xp->query($BPData);
+		return $BPData->item(0);
+	}
+	
+	private function getToBP($slide){
+		$BPData = '/key:presentation/key:slide-list/key:slide[@sfa:ID="BGSlide-'.$slide.'"]/key:page/sf:layers/sf:layer[2]/sf:drawables/sf:group';
 		$BPData = $this->xp->query($BPData);
 		return $BPData->item(0);
 	}
@@ -282,7 +286,7 @@ class apxlWriter {
 		// returns nextSibling if getSibling is set
 		$nodeN = null;
 		if ($getSibling)
-		$nodeN = $node->nextSibling;
+			$nodeN = $node->nextSibling;
 		$parent = $node->parentNode;
 		$parent->removeChild($node);
 		return $nodeN;
