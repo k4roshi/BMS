@@ -246,10 +246,11 @@ class LinkedList{
     // Metodo aggiunto per debug
     
     public function __toString(){
-    	 for ($i = 0; $i < $this->size; $i++) {
+    	$tmp = '';
+    	for ($i = 0; $i < $this->size; $i++) {
     	 	$tmp .= $this->get($i);
-    	 }
-    	 return $tmp;
+    	}
+    	return $tmp;
     }
 } 
 ?>
