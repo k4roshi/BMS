@@ -1,16 +1,27 @@
 <?php
-// Parsa file e popola strutture dati
+require_once 'Data.php';
+require_once 'Parser.php';
+require_once 'apxlWriter.php';
+require_once 'Compressor.php';
 
-// Modifica xml
-	// Apri Resources/index.apxl
-	// Importa albero
-	// Popola tabelle
-	// Rimuovi tabelle inutili
-	// (^ e v sono invertibili, bisogna valutare cos' meglio)
-	// Popola grafici
-	// Rimuovi grafici inutili
-	// salva Tmp/index.apxl
-	
-// zippa file
+$sourceData = '';
+$templateDir = 'Resources';
+$templateFile = "$templateDir/index.apxl";
+$outputIndex = 'Tmp/index.apxl';
+$outputKey = 'Pisellone.key';
+$parser = new Parser($sourceData);
 
-// restituisci file .key
+// $testData = $parser->parse();
+$testData = new Data('Staffilococco');
+$testData->parsetest();
+
+$apxlWriter = new apxlWriter($templateFile, $testData);
+$apxlWriter->populateTables();
+$apxlWriter->populateCharts();
+$apxlWriter->saveResult($outputIndex);
+
+$zip = new Compressor($templateDir);
+$zip->makeKey($outputKey);
+$zip->addNewIndex($outputIndex);
+$zip->closeKey();
+

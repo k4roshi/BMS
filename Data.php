@@ -152,19 +152,20 @@ class Data {
 		$this->antimicrobics->add(new Antimicrobic('Levofloxacin'));
 		$this->antimicrobics->get(0)->value['0,004'] = 33;
 		$this->antimicrobics->get(0)->value['0,25'] = 25;
+		$this->antimicrobics->get(0)->value['0,5'] = 15;
 		$this->antimicrobics->get(0)->value['256'] = 10;
-//		$this->antimicrobics->get(0)->bp = '0,5';
-//		$this->antimicrobics->get(0)->blue = "0,12";
+		$this->antimicrobics->get(0)->set_bp('0,5');
+		$this->antimicrobics->get(0)->set_blue('0,12');
 		$this->antimicrobics->add(new Antimicrobic('Pippo'));
 		$this->antimicrobics->get(1)->value['0,015'] = 55;
-//		$this->antimicrobics->get(1)->bp = '1';
-//		$this->antimicrobics->get(1)->blue = "0,25";
+		$this->antimicrobics->get(1)->set_bp('1');
+		$this->antimicrobics->get(1)->set_blue('0,25');
 		$max = rand(0,40);
 		for ($i = 2; $i < $max; $i++){
 			$this->antimicrobics->add(new Antimicrobic('Random '.$i));
 			$this->antimicrobics->get($i)->value['0,004'] = $i;
-//			$this->antimicrobics->get($i)->bp = '0,5';
-//			$this->antimicrobics->get($i)->blue = "0,12";
+			$this->antimicrobics->get($i)->set_bp('0,5');
+			$this->antimicrobics->get($i)->set_blue('0,12');
 		}
 	}
 
@@ -173,7 +174,7 @@ class Data {
 
 class Antimicrobic {
 	
-	public $name;
+	private $name;
 	
 	// inizializziamo tutto a 0, piu' comodo.
 	public $value = array('0,002' => 0, '0,004'=> 0, '0,008'=> 0, '0,015'=> 0, 
@@ -185,6 +186,10 @@ class Antimicrobic {
 	
 	public function __construct($name) {
 		$this->name = $name;
+	}
+	
+	public function get_name(){
+		return $this->name;
 	}
 
 	public function get_name(){
