@@ -31,6 +31,7 @@ class Data {
 		$this->antimicrobics->add(new Antimicrobic('Levofloxacin'));
 		$this->antimicrobics->get(0)->value['0,004'] = 33;
 		$this->antimicrobics->get(0)->value['0,25'] = 25;
+		$this->antimicrobics->get(0)->value['0,5'] = 15;
 		$this->antimicrobics->get(0)->value['256'] = 10;
 		$this->antimicrobics->get(0)->bp = '0,5';
 		$this->antimicrobics->get(0)->blue = "0,12";

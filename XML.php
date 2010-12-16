@@ -1,6 +1,5 @@
 <?php
 require_once 'Data.php';
-
 $result = 'Tmp/index.apxl';
 $index= file_get_contents('Resources/index.apxl');
 // Elimina whitespace
@@ -16,11 +15,7 @@ $xp = new domxpath($dom);
 // liberiamo un po' di memoria
 unset($index);
 
-// Nodo padre di tutte le slide
-//$slideList = $xp->query('/key:presentation/key:slide-list');
-//$slideTree = $slideList->item(0);
-
-//
+// Proprietˆ univoche delle tabelle $tableProperties[numero della tabella][proprietˆ]
 $tableProperties = array (1 => array ('layer' => 'SFDLayerInfo-31', 'normalColumnStyle' => '208', 'blueColumnStyle' => '243'),
 						  2 => array ('layer' => 'SFDLayerInfo-33', 'normalColumnStyle' => '222', 'blueColumnStyle' => '244'),
 						  3 => array ('layer' => 'SFDLayerInfo-35', 'normalColumnStyle' => '241', 'blueColumnStyle' => '245')
@@ -39,7 +34,8 @@ $germ->parsetest();
 $length = $germ->antimicrobics->size();
 $nrTables = $length/15;
 $nrTables = ceil($nrTables);
-$anti = 0;
+
+// TODO Debug output, rimuovi
 echo 'Items: '.$length;
 echo "\nNumero Tabelle: ".$nrTables."\n";
 
@@ -90,12 +86,15 @@ for ($table = 1; $table <= $nrTables; $table++) {
 		// aggiungi stile intestazione
 		$borderStyle = styledColumnNode($tableProperties[$table]['normalColumnStyle'], 0);
 		$Style->appendChild($borderStyle->firstChild->firstChild);
+		// stile cella
 		for ($i = 0 ; $i < $ElementsTable[$table]; $i++) {
 			$tmp = $i+$ElementsTable[$table-1]+$ElementsTable[$table-2]+1;
 			$item = $germ->antimicrobics->get($i+$ElementsTable[$table-1]+$ElementsTable[$table-2]);
 			if ($item->getBpPosition() != $j-1) {
+				// normale
 				$borderStyle = styledColumnNode($tableProperties[$table]['normalColumnStyle'], $i+1);
 			} else {
+				// bordo destro blu
 				$borderStyle = styledColumnNode($tableProperties[$table]['blueColumnStyle'], $i+1);
 			}
 			$Style->appendChild($borderStyle->firstChild->firstChild);
@@ -113,20 +112,19 @@ for ($table = 1; $table <= $nrTables; $table++) {
 	}
 // *  Vai agli stili orizzontali (sf:horizontal-gridline-styles)
 	$hStyles = getToHStyles($table, $tableProperties[$table]['layer']);
-// *  modifica sf:array-size in numero antibiotici da inserire in quella tabella-1
+// *  modifica sf:array-size in numero antibiotici da inserire in quella tabella
 	$hStyles->setAttribute('sf:array-size', $ElementsTable[$table]);
-// *  posizionati sul secondo
+// *  posizionati sull'ultimo ed elimina tutti quelli non necessari
 	$sRow = getToHSingleStyle($table, $tableProperties[$table]['layer'], 15);
 	for ($j = 15; $j > $ElementsTable[$table]; $j--){
 		$sRowN = $sRow->previousSibling;
 		$sRow = removeNode($sRow);
 		$sRow = $sRowN;
 	}
-// *  elimina quelli non necessari
 // *  Vai ai dati (sf:datasource)
 	$dSource = getToDatasource($table, $tableProperties[$table]['layer']);
 	for ($i = 0 ; $i < $ElementsTable[$table]; $i++) {
-		$item = $germ->antimicrobics->get($i+$ElementsTable[$table-1]+$ElementsTable[$table-2]);
+		$item = $germ->antimicrobics->get($i + $ElementsTable[$table - 1] + $ElementsTable[$table - 2]);
 		$child = $dSource->firstChild;
 		$child->setAttribute('sfa:s', $item->name);
 		$dSource = $dSource->nextSibling;
@@ -162,10 +160,13 @@ for ($i = 0; $i < $germ->antimicrobics->size; $i++){
 	$name = getToGraphName($chartIndex);
 	$aName = $item->name;
 	$name->nodeValue = $aName;
-	$tmp = $name->nodeValue;
-	// riempi dati in serie corrette
 	$bluePoint = $item->getLastBluePosition();
 	$breakPoint = $item->getBpPosition();
+	// setta barra BP
+	$BPNode = getToBPBar($chartIndex);
+	$xPos = 81 + (49.5 * $breakPoint);
+	$BPNode->setAttribute('sfa:x', $xPos);
+	// riempi dati in serie corrette
 	$gData = getToGraphData($chartIndex);
 	$counter = 0;
 	foreach ($item->value as $value){
@@ -173,10 +174,10 @@ for ($i = 0; $i < $germ->antimicrobics->size; $i++){
 			// BLU - Prima Serie
 			$choice = $gData->firstChild;
 		} else if ($counter <= $breakPoint){
-			// verde
+			// verde - seconda serie
 			$choice = $gData->firstChild->nextSibling;
 		} else {
-			// rosso
+			// rosso - terza serie
 			$choice = $gData->firstChild->nextSibling->nextSibling;
 		}
 		$choice->setAttribute('sfa:number', $value);
@@ -266,6 +267,13 @@ function getToGraphName($slide){
 	$gData = '/key:presentation/key:slide-list/key:slide[@sfa:ID="BGSlide-'.$slide.'"]/key:page/sf:layers/sf:layer[2]/sf:drawables/sf:shape/sf:text/sf:text-storage/sf:text-body/sf:p';
 	$gData = $xp->query($gData);
 	return $gData->item(0);
+}
+
+function getToBPBar($slide){
+	global $xp;
+	$BPData = '/key:presentation/key:slide-list/key:slide[@sfa:ID="BGSlide-'.$slide.'"]/key:page/sf:layers/sf:layer[2]/sf:drawables/sf:group/sf:geometry/sf:position';
+	$BPData = $xp->query($BPData);
+	return $BPData->item(0);
 }
 
 function removeNode(DOMNode $node, $getSibling = false){
