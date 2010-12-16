@@ -11,7 +11,9 @@ $outputIndex = 'Tmp/index.apxl';
 $outputKey = 'Pisellone.key';
 $parser = new Parser($sourceData);
 
-$testData = $parser->parse();
+// $testData = $parser->parse();
+$testData = new Data('Staffilococco');
+$testData->parsetest();
 
 $apxlWriter = new apxlWriter($templateFile, $testData);
 $apxlWriter->populateTables();

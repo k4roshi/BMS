@@ -16,7 +16,7 @@ class Compressor{
 		if($this->zip->open($name, $this->overwrite ? ZIPARCHIVE::OVERWRITE : ZIPARCHIVE::CREATE) !== true) {
 		die ('Cannot open destination file');
 		}	
-		rec_zip($this->folder);
+		$this->rec_zip($this->folder);
 	}
 	
 	public function addNewIndex($newIndex){
@@ -27,6 +27,7 @@ class Compressor{
 	
 	public function closeKey(){
 		$this->zip->close();
+		echo 'File Created';
 	}
 	
 	private function rec_zip($folder){
@@ -36,7 +37,7 @@ class Compressor{
 				if ($element->isDir()) {
 					$newdir = $element->getFilename();
 					$newfolder = "$folder/$newdir";
-					rec_zip($newfolder);
+					$this->rec_zip($newfolder);
 				} else {
 					$path = $element->getPath();
 					$name = $element->getFilename();

@@ -8,19 +8,19 @@ class apxlWriter {
 	public function __construct($template, Data $germ){
 		$this->index = $template;
 		$this->germ = $germ;
-		$this->index= file_get_contents($index);
-		// Elimina whitespace
-		$this->index = preg_replace("/>\s+</", "><", $index);
+		$this->index= file_get_contents($this->index);
+		// Elimina whitespace se presente
+		$this->index = preg_replace("/>\s+</", "><", $this->index);
 
 
 		// Oggetti DOM, impostazioni e creazione Xpath
 		$this->dom = new DOMDocument();
-		$this->dom->loadXML($index);
+		$this->dom->loadXML($this->index);
 		$this->dom->formatOutput = true;
 		$this->dom->preserveWhiteSpace = false;
 		$this->xp = new domxpath($this->dom);
 		// liberiamo un po' di memoria
-		unset($index);
+		unset($this->index);
 	}
 
 	public function populateTables(){
@@ -63,18 +63,18 @@ class apxlWriter {
 			// *  vai a sf:geometry/sf:position setta sfa:y y = (1024 - Dimensione Tabella) /2
 			$tableDimension = 46 * $ElementsTable[$table]+1;
 			$y = ceil ((768 - $tableDimension)/2);
-			$gNode = getToGeometry($table, $tableProperties[$table]['layer']);
+			$gNode = $this->getToGeometry($table, $tableProperties[$table]['layer']);
 			$gNode = $gNode->firstChild;
 			$gNode->setAttribute('sfa:h',$tableDimension);
 			$gNode = $gNode->nextSibling;
 			$gNode->setAttribute('sfa:h',$tableDimension);
 			$gNode = $gNode->nextSibling;
 			$gNode->setAttribute('sfa:y', $y);
-			$grid = getToGrid($table, $tableProperties[$table]['layer']);
+			$grid = $this->getToGrid($table, $tableProperties[$table]['layer']);
 			$grid->setAttribute('sf:numrows', $ElementsTable[$table]+1);
 			$grid->setAttribute('sf:ocnt', 20*$ElementsTable[$table]+1);
 			// impostazione griglia
-			$vStyles = getToVStyles($table, $tableProperties[$table]['layer']);
+			$vStyles = $this->getToVStyles($table, $tableProperties[$table]['layer']);
 			$Style = $vStyles->firstChild;
 			// migliorabile se ho voglia (stili colonna)
 			for ($j=0; $j < 19; $j++){
@@ -85,7 +85,7 @@ class apxlWriter {
 					$Style->removeChild($deadNode);
 				}
 				// aggiungi stile intestazione
-				$borderStyle = styledColumnNode($tableProperties[$table]['normalColumnStyle'], 0);
+				$borderStyle = $this->styledColumnNode($tableProperties[$table]['normalColumnStyle'], 0);
 				$Style->appendChild($borderStyle->firstChild->firstChild);
 				// stile cella
 				for ($i = 0 ; $i < $ElementsTable[$table]; $i++) {
@@ -93,41 +93,41 @@ class apxlWriter {
 					$item = $this->germ->antimicrobics->get($i+$ElementsTable[$table-1]+$ElementsTable[$table-2]);
 					if ($item->getBpPosition() != $j-1) {
 						// normale
-						$borderStyle = styledColumnNode($tableProperties[$table]['normalColumnStyle'], $i+1);
+						$borderStyle = $this->styledColumnNode($tableProperties[$table]['normalColumnStyle'], $i+1);
 					} else {
 						// bordo destro blu
-						$borderStyle = styledColumnNode($tableProperties[$table]['blueColumnStyle'], $i+1);
+						$borderStyle = $this->styledColumnNode($tableProperties[$table]['blueColumnStyle'], $i+1);
 					}
 					$Style->appendChild($borderStyle->firstChild->firstChild);
 				}
 				$Style = $Style->nextSibling;
 			}
 			// *	Vai alle righe (sf:rows)
-			$rows = getToRows($table, $tableProperties[$table]['layer']);
+			$rows = $this->getToRows($table, $tableProperties[$table]['layer']);
 			$rows->setAttribute('sf:count', $ElementsTable[$table]+1);
 			// *  posizionati sulla 3 riga ed elimina quelle inutili
 			$singleRow = $rows->firstChild;
 			$singleRow = $singleRow->nextSibling->nextSibling;
 			for ($j = $ElementsTable[$table]; $j < 14; $j++){
-				$singleRow = removeNode($singleRow, true);
+				$singleRow = $this->removeNode($singleRow, true);
 			}
 			// *  Vai agli stili orizzontali (sf:horizontal-gridline-styles)
-			$hStyles = getToHStyles($table, $tableProperties[$table]['layer']);
+			$hStyles = $this->getToHStyles($table, $tableProperties[$table]['layer']);
 			// *  modifica sf:array-size in numero antibiotici da inserire in quella tabella
 			$hStyles->setAttribute('sf:array-size', $ElementsTable[$table]);
 			// *  posizionati sull'ultimo ed elimina tutti quelli non necessari
-			$sRow = getToHSingleStyle($table, $tableProperties[$table]['layer'], 15);
+			$sRow = $this->getToHSingleStyle($table, $tableProperties[$table]['layer'], 15);
 			for ($j = 15; $j > $ElementsTable[$table]; $j--){
 				$sRowN = $sRow->previousSibling;
-				$sRow = removeNode($sRow);
+				$sRow = $this->removeNode($sRow);
 				$sRow = $sRowN;
 			}
 			// *  Vai ai dati (sf:datasource)
-			$dSource = getToDatasource($table, $tableProperties[$table]['layer']);
+			$dSource = $this->getToDatasource($table, $tableProperties[$table]['layer']);
 			for ($i = 0 ; $i < $ElementsTable[$table]; $i++) {
 				$item = $this->germ->antimicrobics->get($i + $ElementsTable[$table - 1] + $ElementsTable[$table - 2]);
 				$child = $dSource->firstChild;
-				$child->setAttribute('sfa:s', $item->name);
+				$child->setAttribute('sfa:s', $item->get_name());
 				$dSource = $dSource->nextSibling;
 				foreach ($item->value as $value){
 					$insert = $value;
@@ -140,14 +140,14 @@ class apxlWriter {
 			}
 			// elimina inutili
 			while ($dSource != null)
-			$dSource = removeNode($dSource, true);
+			$dSource = $this->removeNode($dSource, true);
 
 		}
 
 		// elimina tabelle inutili
 
 		for ($i = $nrTables; $i < 3; $i++){
-			$node = getToSlideNr($i+1);
+			$node = $this->getToSlideNr($i+1);
 			$parent = $node->parentNode;
 			$parent->removeChild($node);
 		}
@@ -158,17 +158,17 @@ class apxlWriter {
 			$chartIndex = 4 + $i;
 			$item = $this->germ->antimicrobics->get($i);
 			// setta nome
-			$name = getToGraphName($chartIndex);
-			$aName = $item->name;
+			$name = $this->getToGraphName($chartIndex);
+			$aName = $item->get_name();
 			$name->nodeValue = $aName;
 			$bluePoint = $item->getLastBluePosition();
 			$breakPoint = $item->getBpPosition();
 			// setta barra BP
-			$BPNode = getToBPBar($chartIndex);
+			$BPNode = $this->getToBPBar($chartIndex);
 			$xPos = 81 + (49.5 * $breakPoint);
 			$BPNode->setAttribute('sfa:x', $xPos);
 			// riempi dati in serie corrette
-			$gData = getToGraphData($chartIndex);
+			$gData = $this->getToGraphData($chartIndex);
 			$counter = 0;
 			foreach ($item->value as $value){
 				if ($counter <= $bluePoint){
@@ -189,14 +189,15 @@ class apxlWriter {
 
 		// elimina grafici inutili
 		for ($i = $this->germ->antimicrobics->size+4; $i <= 48; $i++){
-			$node = getToSlideNr($i);
-			removeNode($node);
+			$node = $this->getToSlideNr($i);
+			$this->removeNode($node);
 		}
 
 	}
 
 	public function saveResult($outputFile){
 		$this->dom->save($outputFile);
+		echo "Saved!";
 	}
 
 	// Funzioni private
