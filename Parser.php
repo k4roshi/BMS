@@ -36,7 +36,9 @@ class Parser {
 		
 		// Get the coordinates of the origin (DIV with text 'Antimicrobic') 
 		$orig = $this->get_coordinates('Antimicrobic');
-		$x_axis_coord = $this->get_x_axis_coord();
+		if ( false === ($x_axis_coord = $this->get_x_axis_coord()) )
+			return false;
+			
 		// Set the threshold proportional to the distance between two colums
 		$x_threshold = ($x_axis_coord['0,004']['x'] - $x_axis_coord['0,002']['x']) * .4;
 		$y_threshold = 3;
@@ -52,8 +54,12 @@ class Parser {
 				// INNER LOOP: For each tick of the x axis
 				foreach ($x_axis_coord as $tick => $tick_pos) {
 					$parsed_value = $this->get_text($y, $tick_pos['x'], $y_threshold, $x_threshold);
-					$antimicrobic->set_value($tick, $parsed_value);
-				}
+					
+					if ($tick == '#Tested')
+						$antimicrobic->set_number_tested($parsed_value);
+					else
+						$antimicrobic->set_value($tick, $parsed_value);
+			}
 
 				$germ->add_antimicrobic($antimicrobic);
 			}
@@ -75,16 +81,12 @@ class Parser {
 			
 		return false;
 	}
-	
-	
-	function get_data_range() {		// TODO ...
-		return false;
-	}
-	
+		
 	
 	function get_x_axis_coord() {
 		// TODO mettere def intervallo fuori da qui e fuori da Data.php se abbiamo voglia
-		$out = array('0,002' => $this->get_coordinates('0.002'),
+		$out = array('#Tested' => $this->get_coordinates('#Tested'),
+			'0,002' => $this->get_coordinates('0.002'),
 			'0,004'=> $this->get_coordinates('0.004'),
 			'0,008'=> $this->get_coordinates('0.008'),
 			'0,015'=> $this->get_coordinates('0.015'), 
@@ -171,8 +173,7 @@ class Parser {
 		
 		return array('x' => $x, 'y' => $y);		
 	}
-	
-	
+
 }
 
 ?>
