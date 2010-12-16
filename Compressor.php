@@ -27,7 +27,7 @@ class Compressor{
 	
 	public function closeKey(){
 		$this->zip->close();
-		echo 'File Created';
+		echo "File Created\n";
 	}
 	
 	private function rec_zip($folder){
