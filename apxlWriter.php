@@ -42,14 +42,14 @@ class apxlWriter {
 
 		$ElementsTable = array();
 		$ElementsTable[0] = $ElementsTable[-1]= 0;
-		if ($length < 15){
+		if ($length <= 15){
 			$ElementsTable[1] = $length;
 			$startIndex = 0;
-		} else if ($length < 30){
+		} else if ($length <= 30){
 			$ElementsTable[1] = ceil($length/2);
 			$ElementsTable[2] = floor($length/2);
 			$start = $ElementsTable[1];
-		} else if ($length < 45){
+		} else if ($length <= 45){
 			$ElementsTable[1] = $ElementsTable[2] = ceil($length/3);
 			$ElementsTable[3] = $length - 2*($ElementsTable[1]);
 		} else {
@@ -61,7 +61,7 @@ class apxlWriter {
 			//*  vai alla slide
 			// *  vai alla tabella (1)  /key:page/sf:layers/sf:layer[@sfa:ID="SFDLayerInfo-31"]/sf:drawables[@sfa:ID="NSMutableArray-1644"]/sf:tabular-info
 			// *  vai a sf:geometry/sf:position setta sfa:y y = (1024 - Dimensione Tabella) /2
-			$tableDimension = 46 * $ElementsTable[$table]+1;
+			$tableDimension = 48 * $ElementsTable[$table]+1;
 			$y = ceil ((768 - $tableDimension)/2);
 			$gNode = $this->getToGeometry($table, $tableProperties[$table]['layer']);
 			$gNode = $gNode->firstChild;
