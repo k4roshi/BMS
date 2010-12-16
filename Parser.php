@@ -12,7 +12,7 @@ class Parser {
 		$fn = basename($sourcefile);
 		
 		// Rendering PDF source file to HTML
-		$res=exec('pdftohtml -l 1 -c -i "' . $dir . "/" . $fn . '"');
+		$res=exec($GLOBALS['config']['pdftohtml'] . ' -l 1 -c -i "' . $dir . "/" . $fn . '"');
 		$html_fn=$dir . "/" . basename($fn, ".pdf") . '-1.html';
 		
 		// Parsing all DIV elements and putting text content into $this->content[y_position][x_position]
