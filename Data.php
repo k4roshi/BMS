@@ -155,7 +155,7 @@ class Data {
 		$this->antimicrobics->get(0)->value['0,5'] = 15;
 		$this->antimicrobics->get(0)->value['256'] = 10;
 		$this->antimicrobics->get(0)->set_bp('0,5');
-		$this->antimicrobics->get(0)->set_blue('0,12');
+		$this->antimicrobics->get(0)->set_blue('0,5');
 		$this->antimicrobics->add(new Antimicrobic('Pippo'));
 		$this->antimicrobics->get(1)->value['0,015'] = 55;
 		$this->antimicrobics->get(1)->set_bp('1');
@@ -188,10 +188,6 @@ class Antimicrobic {
 		$this->name = $name;
 	}
 	
-	public function get_name(){
-		return $this->name;
-	}
-
 	public function get_name(){
 		return $this->name;
 	}

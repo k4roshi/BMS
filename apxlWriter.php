@@ -24,9 +24,9 @@ class apxlWriter {
 
 	public function populateTables(){
 		// Proprietˆ univoche delle tabelle $tableProperties[numero della tabella][proprietˆ]
-		$tableProperties = array (1 => array ('layer' => 'SFDLayerInfo-31', 'normalColumnStyle' => '208', 'blueColumnStyle' => '243'),
-		2 => array ('layer' => 'SFDLayerInfo-33', 'normalColumnStyle' => '222', 'blueColumnStyle' => '244'),
-		3 => array ('layer' => 'SFDLayerInfo-35', 'normalColumnStyle' => '241', 'blueColumnStyle' => '245')
+		$tableProperties = array (1 => array ('layer' => 'SFDLayerInfo-31', 'normalColumnStyle' => '208', 'blueColumnStyle' => '243', 'greenColumnStyle' => '246', 'yellowColumnStyle' => '248'),
+		2 => array ('layer' => 'SFDLayerInfo-33', 'normalColumnStyle' => '222', 'blueColumnStyle' => '244', 'greenColumnStyle' => '249', 'yellowColumnStyle' => '250'),
+		3 => array ('layer' => 'SFDLayerInfo-35', 'normalColumnStyle' => '241', 'blueColumnStyle' => '245', 'greenColumnStyle' => '251', 'yellowColumnStyle' => '252')
 		);
 
 
@@ -91,12 +91,18 @@ class apxlWriter {
 					$tmp = $i+$ElementsTable[$table-1]+$ElementsTable[$table-2]+1;
 					$item = $this->germ->antimicrobics->get($i+$ElementsTable[$table-1]+$ElementsTable[$table-2]);
 					$bpPos = $item->getBpPosition();
-					if ($bpPos !== $j-1) {
-						// normale
-						$borderStyle = $this->styledColumnNode($tableProperties[$table]['normalColumnStyle'], $i+1);
-					} else {
-						// bordo destro blu
+					$bluePosition = $item->getLastBluePosition();
+					if (($bpPos === $j-1) && ($bluePosition === $j-1)) {
+						// giallo
+						$borderStyle = $this->styledColumnNode($tableProperties[$table]['yellowColumnStyle'], $i+1);
+					} else if ($bpPos === $j-1){
+						// bordo destro verde
+						$borderStyle = $this->styledColumnNode($tableProperties[$table]['greenColumnStyle'], $i+1);
+					} else if ($bluePosition === $j-1) {
+						// blu
 						$borderStyle = $this->styledColumnNode($tableProperties[$table]['blueColumnStyle'], $i+1);
+					} else {
+						$borderStyle = $this->styledColumnNode($tableProperties[$table]['normalColumnStyle'], $i+1);
 					}
 					$Style->appendChild($borderStyle->firstChild->firstChild);
 				}
