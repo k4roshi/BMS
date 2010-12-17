@@ -1,6 +1,6 @@
 <?php
 require_once('Utility/LinkedList.php');
-require_once('Library/PHPExcel/Classes/PHPExcel.php');
+require_once('Utility/PHPExcel/Classes/PHPExcel.php');
 
 class Data {
 	public $name;	//TODO private
@@ -20,15 +20,13 @@ class Data {
 			$value = $this->antimicrobics->get($i)->get_value();
 
 			// Iterate each value and subtract his previous;
-			$prev_tick = 0;
-			foreach ($value as $tick => $tick_val) {
-				if ($prev_tick !== 0) {
-					if ($prev_tick_val > 0 && $prev_tick_val < 100 && $tick_val === 0)
-						die("Errore nel parsing. Dati non cooerenti, trovati zeri nelle percentuali cumulate");
-					$value[$tick] = $value[$tick] - $prev_tick_val;
-				}
-				$prev_tick = $tick;
-				$prev_tick_val = $tick_val;				
+			$ticks = array_keys($value);
+			end($ticks);
+			while ($tick = current($ticks)) {
+				
+				$prev_tick = prev($ticks);
+				if ( (false !== $prev_tick) && ($value[$tick] !== 0) )
+					$this->antimicrobics->get($i)->value[$tick] -= $value[$prev_tick];
 			}
 		}
 	}
@@ -42,7 +40,7 @@ class Data {
 		$parent_antimicrobic_idx = 0;
 		
 		for ($i = 0; $i < $this->antimicrobics->size; $i++) {
-			
+
 			$max_child_nonzero = 0;
 			$max_child_idx = 0;
 			// If name of the Antimicrobic has char '(' in it, then that Antimicrobic is a child 
@@ -56,11 +54,6 @@ class Data {
 			
 			if ( $max_child_idx !== 0 ) {
 				// Child found!
-				
-				// Pruning other childs
-				for ($j = $parent_antimicrobic_idx+1; $j<$i; $j++)
-					if ($j != $max_child_idx)
-						$this->antimicrobics->removeObjectAtIndex($j);
 			
 				// Extracting names
 				$child_full_name = $this->antimicrobics->get($max_child_idx)->get_name();
@@ -71,24 +64,25 @@ class Data {
 				$child_antimicrobic_name = trim( substr($child_full_name, $start+1, $end-$start-1) );
 				
 				// Checking coherence
-				if ( false !== strpos($this->antimicrobics->get($parent_antimicrobic_idx)->get_name(), $parent_antimicrobic_name) )
-					die("Errore. Dati non cooerenti per Antimicrobic " . $parent_antimicrobic_name);
+				if ( false === strpos($this->antimicrobics->get($parent_antimicrobic_idx)->get_name(), $parent_antimicrobic_name) )
+					die("Errore. Dati non cooerenti per Antimicrobic: " . $parent_antimicrobic_name);
 				
 				$child_number_tested = $this->antimicrobics->get($max_child_idx)->get_number_tested();
 				$parent_number_tested = $this->antimicrobics->get($parent_antimicrobic_idx)->get_number_tested();
 				
 				// Recalc percentage of child (total amount is now $child_number_tested + $parent_number_tested)
 				foreach ($this->antimicrobics->get($max_child_idx)->get_value() as $tick => $tick_val)
-					$this->antimicrobics->get($max_child_idx)->value[$tick] = round($tick_val * ($child_number_tested+$parent_number_tested) / $child_number_tested);
+					$this->antimicrobics->get($max_child_idx)->value[$tick] = $tick_val * $child_number_tested / ($child_number_tested+$parent_number_tested);
 				
 				// Recalc percentage of parent AND sum child values
 				foreach ($this->antimicrobics->get($parent_antimicrobic_idx)->get_value() as $tick => $tick_val)
-					$this->antimicrobics->get($parent_antimicrobic_idx)->value[$tick] = round($tick_val * ($child_number_tested+$parent_number_tested) / $parent_number_tested) + $this->antimicrobics->get($max_child_idx)->value[$tick];
+					$this->antimicrobics->get($parent_antimicrobic_idx)->value[$tick] = round( $tick_val * $parent_number_tested / ($child_number_tested+$parent_number_tested) + $this->antimicrobics->get($max_child_idx)->value[$tick] );
 
-				// Now child is merged with parent so can be safely removed
-				$this->antimicrobics->removeObjectAtIndex($max_child_idx);
-			}
-			
+				// Pruning childs. Now max child is merged with parent so can be safely removed
+				for (; $i>$parent_antimicrobic_idx+1; $i--)
+					$this->antimicrobics->removeObjectAtIndex($parent_antimicrobic_idx+1);
+
+			}			
 			$parent_antimicrobic_idx = $i;
 		}
 	}
@@ -96,15 +90,20 @@ class Data {
 	
 	public function add_antimicrobic($antimicrobic) {
 		// Look up bp/blue markings (based on the pair germ-antimicrobic)
-		if (false !== ($markings = $this->lookup_markings($this->name, $antimicrobic)) ) {
+		$germ_name = str_replace(' ', '', $this->get_name());
+		$antimicrobic_name = str_replace(' ', '', $antimicrobic->get_name());
+		
+		if (false !== ($markings = $this->lookup_markings($germ_name, $antimicrobic_name)) ) {
 			$antimicrobic->set_bp($markings['bp']);
 			$antimicrobic->set_blue($markings['blue']);
 		}
+		
 		// Update $this->number_tested as the MAX of every $antimicrobic->get_number_tested()
 		if ( ($number_tested = $antimicrobic->get_number_tested()) > $this->number_tested )
 			$this->number_tested = $number_tested;
 
 		$this->antimicrobics->add($antimicrobic);
+		
 	}
 	
 	
@@ -118,22 +117,36 @@ class Data {
 	
 	// lookup_markings() can return no values
 	function lookup_markings($germ, $antimicrobic) {
-		$objPHPExcel = PHPExcel_IOFactory::load("EUCAST.xlsx");	//TODO porta fuori
+	
+		$objPHPExcel = PHPExcel_IOFactory::load($GLOBALS['config']['markings']);
 
+		$highestRow = $objPHPExcel->getActiveSheet()->getHighestRow();
+		
 		$r=2;
-		while ( "" != ($c_germ = $objPHPExcel->getActiveSheet()->getCell('B'.$r)->getValue()) ) {
-			
-			if (strcasecmp(trim($c_germ), trim($germ))) {
-				$c_antimicrobic = $objPHPExcel->getActiveSheet()->getCell('C'.$r)->getValue();
+		while ( $r <= $highestRow ) {
+			$c_germ = $objPHPExcel->getActiveSheet()->getCell('C' . $r)->getValue();
+			$c_germ = str_replace(' ', '', $c_germ);
+
+			if (strcasecmp($c_germ, $germ) == 0) {
+
+				$c_antimicrobic = $objPHPExcel->getActiveSheet()->getCell('B' . $r)->getValue();
+				$c_antimicrobic =  str_replace(' ', '', $c_antimicrobic);
 				
-				if (strcasecmp(trim($c_antimicrobic), trim($antimicrobic))) {
-					$out['blue'] = $objPHPExcel->getActiveSheet()->getCell('D'.$r)->getValue();
-					$out['bp'] = $objPHPExcel->getActiveSheet()->getCell('E'.$r)->getValue();
+				if (strcasecmp($c_antimicrobic, $antimicrobic) == 0) {
+					$out['blue'] = $objPHPExcel->getActiveSheet()->getCell('D' . $r)->getValue();
+					$out['blue'] = str_replace('.', ',', $out['blue']);
+					$out['bp'] = $objPHPExcel->getActiveSheet()->getCell('E' . $r)->getValue();
+					$out['bp'] = str_replace('.', ',', $out['bp']);
+					
+					if ( ($out['blue'] == '') || ($out['bp'] == '') )
+						return;					
 					return $out;
 				}
 			}
+			$r++;
 		}
 	}
+
 	
 	public function get_number_tested() {
 		return $this->number_tested;
@@ -142,33 +155,11 @@ class Data {
 	public function set_number_tested($number_tested) {
 		$this->number_tested = $number_tested;
 	}
-	
-	public function parse($text){
 		
+	public function get_name() {
+		return $this->name;
 	}
 	
-	// testing stuff
-	public function parsetest(){
-		$this->antimicrobics->add(new Antimicrobic('Levofloxacin'));
-		$this->antimicrobics->get(0)->value['0,004'] = 33;
-		$this->antimicrobics->get(0)->value['0,25'] = 25;
-		$this->antimicrobics->get(0)->value['0,5'] = 15;
-		$this->antimicrobics->get(0)->value['256'] = 10;
-		$this->antimicrobics->get(0)->set_bp('0,5');
-		$this->antimicrobics->get(0)->set_blue('0,5');
-		$this->antimicrobics->add(new Antimicrobic('Pippo'));
-		$this->antimicrobics->get(1)->value['0,015'] = 55;
-		$this->antimicrobics->get(1)->set_bp('1');
-		$this->antimicrobics->get(1)->set_blue('0,25');
-		$max = rand(0,40);
-		for ($i = 2; $i < $max; $i++){
-			$this->antimicrobics->add(new Antimicrobic('Random '.$i));
-			$this->antimicrobics->get($i)->value['0,004'] = $i;
-			$this->antimicrobics->get($i)->set_bp('0,5');
-			$this->antimicrobics->get($i)->set_blue('0,12');
-		}
-	}
-
 }
 
 
@@ -188,10 +179,6 @@ class Antimicrobic {
 		$this->name = $name;
 	}
 	
-	public function get_name(){
-		return $this->name;
-	}
-	
 	public function count_nonzero() {
 		$count = 0;
 		foreach ($this->value as $val)
@@ -200,7 +187,8 @@ class Antimicrobic {
 				
 		return $count;
 	}
-		
+
+	
 	public function getBpPosition(){
 		$array = array_keys($this->value);
 		while ($i = current($array)) {
@@ -212,9 +200,6 @@ class Antimicrobic {
 	}
 	
 	
-	public function get_value() {
-		return $this->value;
-	}
 	public function getLastBluePosition(){
 		$array = array_keys($this->value);
 		while ($i = current($array)) {
@@ -223,6 +208,16 @@ class Antimicrobic {
 			}
 			next($array);
 		}
+	}
+	
+	
+	public function get_name(){
+		return $this->name;
+	}
+
+	
+	public function get_value() {
+		return $this->value;
 	}
 	
 	public function set_value($tick, $value) {
@@ -264,11 +259,6 @@ class Antimicrobic {
 	}
 	
 	
-	public function sanity_check() {
-		return true;	//TODO se i valori sono a blocchi contigui. Poi prova con sogli piu' basse.
-	}
-	
-
 	public function __toString(){
 		$tmp = "$this->name\n";
 		$tmp .= "Ultima casella blu: $this->blue\n";
@@ -281,11 +271,5 @@ class Antimicrobic {
 	}
 
 }
-
-
-//echo $test;
-
-//echo $test->antimicrobics->get(1)->getBpPosition();
-
 
 ?>
