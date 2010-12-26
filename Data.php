@@ -1,6 +1,8 @@
 <?php
 require_once('Utility/LinkedList.php');
 require_once('Utility/PHPExcel/Classes/PHPExcel.php');
+require_once('Utility/Utils.php');
+
 
 class Data {
 	public $name;	//TODO private
@@ -64,8 +66,10 @@ class Data {
 				$child_antimicrobic_name = trim( substr($child_full_name, $start+1, $end-$start-1) );
 				
 				// Checking coherence
-				if ( false === strpos($this->antimicrobics->get($parent_antimicrobic_idx)->get_name(), $parent_antimicrobic_name) )
-					die("Errore. Dati non cooerenti per Antimicrobic: " . $parent_antimicrobic_name);
+				if ( false === strpos($this->antimicrobics->get($parent_antimicrobic_idx)->get_name(), $parent_antimicrobic_name) ) {
+					Utils::log("Errore. Dati non cooerenti per Antimicrobic: " . $parent_antimicrobic_name);
+					die();
+				}
 				
 				$child_number_tested = $this->antimicrobics->get($max_child_idx)->get_number_tested();
 				$parent_number_tested = $this->antimicrobics->get($parent_antimicrobic_idx)->get_number_tested();
@@ -90,10 +94,7 @@ class Data {
 	
 	public function add_antimicrobic($antimicrobic) {
 		// Look up bp/blue markings (based on the pair germ-antimicrobic)
-		$germ_name = str_replace(' ', '', $this->get_name());
-		$antimicrobic_name = str_replace(' ', '', $antimicrobic->get_name());
-		
-		if (false !== ($markings = $this->lookup_markings($germ_name, $antimicrobic_name)) ) {
+		if (false !== ($markings = $this->lookup_markings($this->get_name(), $antimicrobic->get_name())) ) {
 			$antimicrobic->set_bp($markings['bp']);
 			$antimicrobic->set_blue($markings['blue']);
 		}
@@ -118,28 +119,35 @@ class Data {
 	// lookup_markings() can return no values
 	function lookup_markings($germ, $antimicrobic) {
 	
+		// $t_germ is the germ to look for (w/o any spaces)
+		$t_germ = str_replace(' ', '', $germ);
+		$t_antimicrobic = str_replace(' ', '', $antimicrobic);
+		
 		$objPHPExcel = PHPExcel_IOFactory::load($GLOBALS['config']['markings']);
-
 		$highestRow = $objPHPExcel->getActiveSheet()->getHighestRow();
 		
 		$r=2;
 		while ( $r <= $highestRow ) {
+			// $c_germ is the germ read from current line (w/o any spaces)
 			$c_germ = $objPHPExcel->getActiveSheet()->getCell('C' . $r)->getValue();
 			$c_germ = str_replace(' ', '', $c_germ);
 
-			if (strcasecmp($c_germ, $germ) == 0) {
+			if (strcasecmp($c_germ, $t_germ) == 0) {
 
 				$c_antimicrobic = $objPHPExcel->getActiveSheet()->getCell('B' . $r)->getValue();
 				$c_antimicrobic =  str_replace(' ', '', $c_antimicrobic);
 				
-				if (strcasecmp($c_antimicrobic, $antimicrobic) == 0) {
+				if (strcasecmp($c_antimicrobic, $t_antimicrobic) == 0) {
 					$out['blue'] = $objPHPExcel->getActiveSheet()->getCell('D' . $r)->getValue();
 					$out['blue'] = str_replace('.', ',', $out['blue']);
 					$out['bp'] = $objPHPExcel->getActiveSheet()->getCell('E' . $r)->getValue();
 					$out['bp'] = str_replace('.', ',', $out['bp']);
 					
-					if ( ($out['blue'] == '') || ($out['bp'] == '') )
-						return;					
+					if ($out['blue'] == '')
+						Utils::log('Valore WT non trovato per ' . $antimicrobic . ' - ' . $germ);
+					if ($out['bp'] == '')
+						Utils::log('Valore BP non trovato per ' . $antimicrobic . ' - ' . $germ);
+					
 					return $out;
 				}
 			}
@@ -237,7 +245,8 @@ class Antimicrobic {
 	}
 	
 	public function set_bp($bp) {
-		$this->bp = $bp;
+		if ($bp != '')
+			$this->bp = $bp;
 	}
 	
 	
@@ -246,7 +255,8 @@ class Antimicrobic {
 	}
 	
 	public function set_blue($blue) {
-		$this->blue = $blue;
+		if ($blue != '')
+			$this->blue = $blue;
 	}
 	
 	

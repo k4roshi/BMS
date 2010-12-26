@@ -14,7 +14,8 @@ class Compressor{
 	
 	public function makeKey($name){
 		if($this->zip->open($name, $this->overwrite ? ZIPARCHIVE::OVERWRITE : ZIPARCHIVE::CREATE) !== true) {
-		die ('Cannot open destination file');
+			Utils::log('Cannot open destination file');
+			die();
 		}	
 		$this->rec_zip($this->folder);
 	}
@@ -22,7 +23,10 @@ class Compressor{
 	public function addNewIndex($newIndex){
 		if (file_exists($newIndex)){
 		$this->zip->addFile($newIndex, 'index.apxl');
-		} else die ('New index not found');
+		} else {
+			Utils::log('New index not found');
+			die();	
+		}
 	}
 	
 	public function closeKey(){

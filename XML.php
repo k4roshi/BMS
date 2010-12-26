@@ -15,7 +15,7 @@ $xp = new domxpath($dom);
 // liberiamo un po' di memoria
 unset($index);
 
-// Proprietˆ univoche delle tabelle $tableProperties[numero della tabella][proprietˆ]
+// Proprietï¿½ univoche delle tabelle $tableProperties[numero della tabella][proprietï¿½]
 $tableProperties = array (1 => array ('layer' => 'SFDLayerInfo-31', 'normalColumnStyle' => '208', 'blueColumnStyle' => '243'),
 						  2 => array ('layer' => 'SFDLayerInfo-33', 'normalColumnStyle' => '222', 'blueColumnStyle' => '244'),
 						  3 => array ('layer' => 'SFDLayerInfo-35', 'normalColumnStyle' => '241', 'blueColumnStyle' => '245')
@@ -52,7 +52,8 @@ if ($length < 15){
 	$ElementsTable[1] = $ElementsTable[2] = ceil($length/3);
 	$ElementsTable[3] = $length - 2*($ElementsTable[1]);
 } else {
-	die ("Too many antibiotics tested!");
+	Utils::log("Too many antibiotics tested!");
+	die();
 }
 
 // TABELLE

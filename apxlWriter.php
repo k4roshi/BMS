@@ -23,7 +23,7 @@ class apxlWriter {
 	}
 
 	public function populateTables(){
-		// Proprietˆ univoche delle tabelle $tableProperties[numero della tabella][proprietˆ]
+		// Proprietï¿½ univoche delle tabelle $tableProperties[numero della tabella][proprietï¿½]
 		$tableProperties = array (1 => array ('layer' => 'SFDLayerInfo-31', 'normalColumnStyle' => '208', 'blueColumnStyle' => '243', 'greenColumnStyle' => '246', 'yellowColumnStyle' => '248'),
 		2 => array ('layer' => 'SFDLayerInfo-33', 'normalColumnStyle' => '222', 'blueColumnStyle' => '244', 'greenColumnStyle' => '249', 'yellowColumnStyle' => '250'),
 		3 => array ('layer' => 'SFDLayerInfo-35', 'normalColumnStyle' => '241', 'blueColumnStyle' => '245', 'greenColumnStyle' => '251', 'yellowColumnStyle' => '252')
@@ -52,7 +52,8 @@ class apxlWriter {
 			$ElementsTable[1] = $ElementsTable[2] = ceil($length/3);
 			$ElementsTable[3] = $length - 2*($ElementsTable[1]);
 		} else {
-			die ("Too many antibiotics tested!");
+			Utils::log("Too many antibiotics tested!");
+			die();
 		}
 
 		// TABELLE
