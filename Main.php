@@ -31,6 +31,7 @@ while (1) {
 			
 			// Generating presentation
 			$apxlWriter = new apxlWriter($templateFile, $data);
+			$apxlWriter->createFirstPage();
 			$apxlWriter->populateTables();
 			$apxlWriter->populateCharts();
 			$apxlWriter->saveResult($outputIndex);

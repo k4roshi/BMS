@@ -15,4 +15,7 @@ $GLOBALS['config']['completeddir'] = '/home/michele/tmp/vise ipad/prove esportaz
 // Cartella WebDAV in cui devono essere caricate le presentazioni (con slash finale)
 $GLOBALS['config']['outdir'] = '/home/michele/tmp/vise ipad/prove esportazioni swinEpid/'; ///home/michele/.gvfs/WebDAV su 192.168.1.133/';	
 
+// Testo personalizzato nella prima slide
+$GLOBALS['config']['customtext'] = 'Ospedale di Treviso - Ulss 9 - reparto di microbiologia - responsabile Dott. Rigoli Roberto';
+
 ?>

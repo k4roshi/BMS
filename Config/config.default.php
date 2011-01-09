@@ -18,4 +18,7 @@ $GLOBALS['config']['outdir'] = 'C:/Program Files/iPadSync/Presentazioni generate
 // File di log in cui vengono scritti eventuali messaggi di utilità per l'operatore (è possibile eliminare il file dopo la consultazione) 
 $GLOBALS['config']['log'] = 'C:/Program Files/iPadSync/log.txt';
 
+// Testo personalizzato nella prima slide
+$GLOBALS['config']['customtext'] = '';
+
 ?>

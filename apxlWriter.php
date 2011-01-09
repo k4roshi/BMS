@@ -22,8 +22,25 @@ class apxlWriter {
 		unset($this->index);
 	}
 
+	public function createFirstPage(){
+		$firstSlideProperties = array ('Date' => '137', 'Name' => '138', 'DateRange' => '140', 'TestedNr' => '142', 'CustomText' => '143');
+		
+		$node = $this->getToTextArea($firstSlideProperties['Date']);
+		$node->nodeValue = date("j/d/Y");
+		$node = $this->getToTextArea($firstSlideProperties['Name']);
+		$node->nodeValue = $this->germ->get_name();
+		$node = $this->getToTextArea($firstSlideProperties['DateRange']);
+		$rangeStart = $this->germ->get_data_range_from(); 
+		$rangeEnd = $this->germ->get_data_range_to();
+		$node->nodeValue = "Dal $rangeStart al $rangeEnd";
+		$node = $this->getToTextArea($firstSlideProperties['TestedNr']);
+		$node->nodeValue = $this->germ->get_number_tested();
+		$node = $this->getToTextArea($firstSlideProperties['CustomText']);
+		$node->nodeValue = $GLOBALS['config']['customtext'];
+	}
+	
 	public function populateTables(){
-		// Propriet� univoche delle tabelle $tableProperties[numero della tabella][propriet�]
+		// Proprieta' univoche delle tabelle $tableProperties[numero della tabella][proprieta']
 		$tableProperties = array (1 => array ('layer' => 'SFDLayerInfo-31', 'normalColumnStyle' => '208', 'blueColumnStyle' => '243', 'greenColumnStyle' => '246', 'yellowColumnStyle' => '248'),
 		2 => array ('layer' => 'SFDLayerInfo-33', 'normalColumnStyle' => '222', 'blueColumnStyle' => '244', 'greenColumnStyle' => '249', 'yellowColumnStyle' => '250'),
 		3 => array ('layer' => 'SFDLayerInfo-35', 'normalColumnStyle' => '241', 'blueColumnStyle' => '245', 'greenColumnStyle' => '251', 'yellowColumnStyle' => '252')
@@ -36,8 +53,8 @@ class apxlWriter {
 		$nrTables = ceil($nrTables);
 
 		// TODO Debug output, rimuovi
-		echo 'Items: '.$length;
-		echo "\nNumero Tabelle: ".$nrTables."\n";
+//		echo 'Items: '.$length;
+//		echo "\nNumero Tabelle: ".$nrTables."\n";
 
 		$ElementsTable = array();
 		$ElementsTable[0] = $ElementsTable[-1]= 0;
@@ -223,6 +240,12 @@ class apxlWriter {
 		return $slide;
 	}
 
+	private function getToTextArea($number){
+		$path = '/key:presentation/key:slide-list/key:slide[@sfa:ID="BGSlide-0"]/key:page/sf:layers/sf:layer[@sfa:ID="SFDLayerInfo-29"]/sf:drawables/sf:shape[@sfa:ID="BGShapeInfo-'.$number.'"]/sf:text/sf:text-storage/sf:text-body/sf:p';
+		$geometry = $this->xp->query($path);
+		return $geometry->item(0);
+	}
+	
 	private function getToGeometry($slide, $layerInfo){
 		$path = '/key:presentation/key:slide-list/key:slide[@sfa:ID="BGSlide-'.$slide.'"]/key:page/sf:layers/sf:layer[@sfa:ID="'.$layerInfo.'"]/sf:drawables/sf:tabular-info/sf:geometry';
 		$geometry = $this->xp->query($path);
