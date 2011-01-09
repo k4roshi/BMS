@@ -8,6 +8,8 @@ class Data {
 	public $name;	//TODO private
 	public $antimicrobics;
 	private $number_tested = 0;
+	private $data_range_from = "";
+	private $data_range_to = "";
 	
 	public function __construct($name){
 		$this->name = $name;
@@ -164,8 +166,27 @@ class Data {
 		$this->number_tested = $number_tested;
 	}
 		
+	
 	public function get_name() {
 		return $this->name;
+	}
+	
+	
+	public function get_data_range_from() {
+		return $this->data_range_from;
+	}
+	
+	public function set_data_range_from($data_range_from) {
+		$this->data_range_from = trim($data_range_from);
+	}
+	
+	
+	public function get_data_range_to() {
+		return $this->data_range_to;
+	}
+	
+	public function set_data_range_to($data_range_to) {
+		$this->data_range_to = trim($data_range_to);
 	}
 	
 }
@@ -229,11 +250,11 @@ class Antimicrobic {
 	}
 	
 	public function set_value($tick, $value) {
-		// Replace asterisk (used as a marker in the source document)
-		$value = str_replace('*', '', $value);
-		
 		if (!isset($this->value[$tick]) || !is_numeric($value))
 			return false;
+		
+		// Replace asterisk (used as a marker in the source document)
+		$value = str_replace('*', '', $value);
 		
 		$this->value[$tick] = $value;
 		return true;

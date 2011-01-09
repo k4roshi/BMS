@@ -17,33 +17,35 @@ while (1) {
 	
 	foreach($files as $fn){
 		if ( ($fn[0] != '.') && (pathinfo($fn, PATHINFO_EXTENSION) == "pdf") ) {
-			
+
 			// PDF found, parsing it
 			$parser = new Parser($GLOBALS['config']['srcdir'] . $fn);
 			$data = $parser->parse();
-			
-			// Output filename
-			$out_fn = Utils::overwrite_avoider($GLOBALS['config']['outdir'] . $data->get_name() . ' (' . date('d-m-Y') . ').key');
-			
-			// Preprocessing
-			$data->fix_percentage();
-			$data->merge_duplicates();
-			
-			// Generating presentation
-			$apxlWriter = new apxlWriter($templateFile, $data);
-			$apxlWriter->populateTables();
-			$apxlWriter->populateCharts();
-			$apxlWriter->saveResult($outputIndex);
-			
-			// Compressing it
-			$zip = new Compressor($templateDir);
-			$zip->makeKey($out_fn);
-			$zip->addNewIndex($outputIndex);
-			$zip->closeKey();
-			
-			// Move source file to $GLOBALS['config']['processeddir']
-			$processed_fn = Utils::overwrite_avoider($GLOBALS['config']['processeddir'] . $fn);
-			rename($GLOBALS['config']['srcdir'] . $fn, $processed_fn);
+	
+			if ($data !== false) {			
+				// Output filename
+				$out_fn = Utils::overwrite_avoider($GLOBALS['config']['outdir'] . $data->get_name() . ' (' . date('d-m-Y') . ').key');
+				
+				// Preprocessing
+				$data->fix_percentage();
+				$data->merge_duplicates();
+				
+				// Generating presentation
+				$apxlWriter = new apxlWriter($templateFile, $data);
+				$apxlWriter->populateTables();
+				$apxlWriter->populateCharts();
+				$apxlWriter->saveResult($outputIndex);
+				
+				// Compressing it
+				$zip = new Compressor($templateDir);
+				$zip->makeKey($out_fn);
+				$zip->addNewIndex($outputIndex);
+				$zip->closeKey();
+				
+				// Move source file to $GLOBALS['config']['processeddir']
+				$processed_fn = Utils::overwrite_avoider($GLOBALS['config']['processeddir'] . $fn);
+				rename($GLOBALS['config']['srcdir'] . $fn, $processed_fn);
+			}
 		}
 	}
 	// Polling until File System Notifier is implemented on Windows

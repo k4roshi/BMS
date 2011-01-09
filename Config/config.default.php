@@ -3,6 +3,9 @@
 // Nome del file Excel con le configurazioni per breakpoint e blue bar
 $GLOBALS['config']['markings'] = 'Config/TABELLA INTERPRETATIVA EUCAST.xlsx';
 
+// File di testo contenente i riferimenti della struttura ospedaliera (verrà visualizzato nella presentazione) 
+$GLOBALS['config']['footer'] = 'Config/footer.txt';
+
 // Nome dell'eseguibile pdftohtml (eventualmente con percorso assoluto)
 $GLOBALS['config']['pdftohtml'] = 'C:/Program Files/pdftohtml/pdftohtml.exe';
 
