@@ -5,8 +5,6 @@ require_once ('Utility/simple_html_dom.php');
 
 class Parser {
 
-	public $content;
-	
 	public function __construct($sourcefile){
 		$dir = dirname($sourcefile);
 		$fn = basename($sourcefile);
@@ -29,11 +27,18 @@ class Parser {
 
 		
 	public function parse(){
-		if ( false === ($tested_germ = $this->get_tested_germ()) )
+		// Extract tested germ name
+		if ( false === ($tested_germ = $this->extract_tested_germ()) )
 			return false;
-			
+
 		$germ = new Data($tested_germ);
-		
+			
+		// Extract data range
+		$data_range = $this->extract_data_range();
+		$pos = strpos($data_range, 'To'); 
+		$germ->set_data_range_from( substr($data_range, 0, $pos) );
+		$germ->set_data_range_to( substr($data_range, $pos+2) );
+			
 		// Get the coordinates of the origin (DIV with text 'Antimicrobic') 
 		$orig = $this->get_coordinates('Antimicrobic');
 		if ( false === ($x_axis_coord = $this->get_x_axis_coord()) )
@@ -42,24 +47,40 @@ class Parser {
 		// Set the threshold proportional to the distance between two colums
 		$x_threshold = ($x_axis_coord['0,004']['x'] - $x_axis_coord['0,002']['x']) * .4;
 		$y_threshold = 3;
-		
+				
 		// OUTER LOOP: For each row of the source being parsed
 		foreach ($this->content as $y => $row) {
-			
+		
 			// Only if the row is aligned with the origin but it is not the origin
 			if ( isset($row[ $orig['x'] ]) && $row[ $orig['x'] ] != 'Antimicrobic' ) {
 
 				$antimicrobic = new Antimicrobic($row[ $orig['x'] ]);
 				
+				$burst_start = $burst_end = false;
+				
 				// INNER LOOP: For each tick of the x axis
 				foreach ($x_axis_coord as $tick => $tick_pos) {
 					$parsed_value = $this->get_text($y, $tick_pos['x'], $y_threshold, $x_threshold);
+			
 					
+					// Begin - sanity check
+					// If I read 2 burst of values there is an hole in the middle: cumulative data should not have holes!
+					if ( (false !== $parsed_value) && $burst_end ) {
+						Utils::log("Errore nel parsing, controllo di coerenza fallito.  Antimicrobic: " . $antimicrobic->get_name());
+						die();
+					}
+					if ( (false !== $parsed_value) && (!$burst_start) && ($tick != '#Tested') )
+						$burst_start = true;
+					if ( (false === $parsed_value) && ($burst_start) )
+						$burst_end = true;
+					// End - sanity check			
+								
+						
 					if ($tick == '#Tested')
 						$antimicrobic->set_number_tested($parsed_value);
 					else
 						$antimicrobic->set_value($tick, $parsed_value);
-			}
+				}
 
 				$germ->add_antimicrobic($antimicrobic);
 			}
@@ -67,11 +88,9 @@ class Parser {
 		return $germ;
 	}
 	
-	
-
-	
+		
 	// **** Private functions ****
-	function get_tested_germ() {
+	function extract_tested_germ() {
 		if ( false === ($pos = $this->get_coordinates('Organismo:')) )
 			return false;
 		
@@ -81,7 +100,17 @@ class Parser {
 			
 		return false;
 	}
+	
+	function extract_data_range() {
+		if ( false === ($pos = $this->get_coordinates('Date Range')) )
+			return false;
 		
+		foreach ($this->content[ $pos['y'] ]  as $x => $text)
+			if ($x != $pos['x'])
+				return $text;  
+			
+		return false;
+	}
 	
 	function get_x_axis_coord() {
 		// TODO mettere def intervallo fuori da qui e fuori da Data.php se abbiamo voglia
