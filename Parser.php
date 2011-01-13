@@ -135,7 +135,7 @@ class Parser {
 			'256'=> $this->get_coordinates('256'),
 			'512'=> $this->get_coordinates('512'), 
 			'1024'=> $this->get_coordinates('1024'),
-			'2048'=> $this->get_coordinates('2048 NOMIC'));
+			'2048'=> $this->get_coordinates('2048'));
 		
 		foreach ($out as $coord)
 			if ($coord === false)
@@ -146,7 +146,7 @@ class Parser {
 	
 	
 	function get_coordinates($pattern) {
-		foreach($this->content as $y => $row)
+		foreach($this->content as $y => $row)			
 			if(false !== ($x = array_search($pattern, $row)))
 				return array('x' => $x, 'y' => $y);
 		

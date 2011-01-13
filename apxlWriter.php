@@ -26,7 +26,7 @@ class apxlWriter {
 		$firstSlideProperties = array ('Date' => '137', 'Name' => '138', 'DateRange' => '140', 'TestedNr' => '142', 'CustomText' => '143');
 		
 		$node = $this->getToTextArea($firstSlideProperties['Date']);
-		$node->nodeValue = date("j/d/Y");
+		$node->nodeValue = date("j/n/Y");
 		$node = $this->getToTextArea($firstSlideProperties['Name']);
 		$node->nodeValue = $this->germ->get_name();
 		$node = $this->getToTextArea($firstSlideProperties['DateRange']);

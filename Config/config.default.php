@@ -3,9 +3,6 @@
 // Nome del file Excel con le configurazioni per breakpoint e blue bar
 $GLOBALS['config']['markings'] = 'Config/TABELLA INTERPRETATIVA EUCAST.xlsx';
 
-// File di testo contenente i riferimenti della struttura ospedaliera (verrà visualizzato nella presentazione) 
-$GLOBALS['config']['footer'] = 'Config/footer.txt';
-
 // Nome dell'eseguibile pdftohtml (eventualmente con percorso assoluto)
 $GLOBALS['config']['pdftohtml'] = 'C:/Program Files/pdftohtml/pdftohtml.exe';
 
@@ -22,6 +19,7 @@ $GLOBALS['config']['outdir'] = 'C:/Program Files/iPadSync/Presentazioni generate
 $GLOBALS['config']['log'] = 'C:/Program Files/iPadSync/log.txt';
 
 // Testo personalizzato nella prima slide
-$GLOBALS['config']['customtext'] = '';
+// e.g. 'Ospedale di Treviso - Ulss 9 - reparto di microbiologia - responsabile Dott. Rigoli Roberto'
+$GLOBALS['config']['customtext'] = ' ';
 
 ?>
