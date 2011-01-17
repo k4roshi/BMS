@@ -38,12 +38,12 @@ class Parser {
 		$pos = strpos($data_range, 'To'); 
 		$germ->set_data_range_from( substr($data_range, 0, $pos) );
 		$germ->set_data_range_to( substr($data_range, $pos+2) );
-			
+
 		// Get the coordinates of the origin (DIV with text 'Antimicrobic') 
 		$orig = $this->get_coordinates('Antimicrobic');
 		if ( false === ($x_axis_coord = $this->get_x_axis_coord()) )
 			return false;
-			
+
 		// Set the threshold proportional to the distance between two colums
 		$x_threshold = ($x_axis_coord['0,004']['x'] - $x_axis_coord['0,002']['x']) * .4;
 		$y_threshold = 3;
@@ -137,6 +137,10 @@ class Parser {
 			'1024'=> $this->get_coordinates('1024'),
 			'2048'=> $this->get_coordinates('2048'));
 		
+		// NOMIC workaround (non dovrebbe succedere se l'estrazione segue pedissequamente la guida utente)
+		if ($out['2048'] === false)
+			$out['2048'] =  $this->get_coordinates('2048 NOMIC');
+			
 		foreach ($out as $coord)
 			if ($coord === false)
 				return false;
