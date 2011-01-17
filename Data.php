@@ -31,7 +31,7 @@ class Data {
 				$prev_tick = prev($ticks);
 				if ( (false !== $prev_tick) && ($value[$tick] !== 0) )
 					$this->antimicrobics->get($i)->value[$tick] -= $value[$prev_tick];
-			}
+			}	
 		}
 	}
 	
@@ -40,38 +40,37 @@ class Data {
 	// merge_duplicates() merge them and recalc percentage. 
 	function merge_duplicates() {
 
-		// Iterate each Antimicrobic
 		$parent_antimicrobic_idx = 0;
-		
+		$parent_antimicrobic_name = "dummydummy";
+	
+		// Iterate each Antimicrobic
 		for ($i = 0; $i < $this->antimicrobics->size; $i++) {
 
 			$max_child_nonzero = 0;
 			$max_child_idx = 0;
-			// If name of the Antimicrobic has char '(' in it, then that Antimicrobic is a child 
+			// Se il nome dell'antimicrobico corrente ha il carattere '(' allora dovrebbe essere un "figlio"
 			while ( ($i < $this->antimicrobics->size) && (false !== strpos($this->antimicrobics->get($i)->get_name(), '(')) ) {
-				if ( $max_child_nonzero < ($child_nonzero = $this->antimicrobics->get($i)->count_nonzero()) ) {
-					$max_child_idx = $i;
-					$max_child_nonzero = $child_nonzero;
+				// Checking coherence
+				if ( false === strpos($this->antimicrobics->get($i)->get_name(), $parent_antimicrobic_name) ) {
+					Utils::log("Errore. Impossibile aggregare l'Antimicrobic: " . $this->antimicrobics->get($i)->get_name());
+					$this->antimicrobics->removeObjectAtIndex($i);
+				} else {
+					// Scegli solo il "figlio" con maggiore dispersione, ovvero con count_nonzero() maggiore
+					if ( $max_child_nonzero < ($child_nonzero = $this->antimicrobics->get($i)->count_nonzero()) ) {
+						$max_child_idx = $i;
+						$max_child_nonzero = $child_nonzero;
+					}
+					$i++;
 				}
-				$i++;
 			}
 			
 			if ( $max_child_idx !== 0 ) {
 				// Child found!
 			
-				// Extracting names
 				$child_full_name = $this->antimicrobics->get($max_child_idx)->get_name();
-				$start = strpos($child_full_name, '(');
-				$end = strpos($child_full_name, ')', $start);
-				
-				$parent_antimicrobic_name = trim( substr($child_full_name, 0, $start) );
-				$child_antimicrobic_name = trim( substr($child_full_name, $start+1, $end-$start-1) );
-				
-				// Checking coherence
-				if ( false === strpos($this->antimicrobics->get($parent_antimicrobic_idx)->get_name(), $parent_antimicrobic_name) ) {
-					Utils::log("Errore. Dati non cooerenti per Antimicrobic: " . $parent_antimicrobic_name);
-					die();
-				}
+				// Estrae il nome del "padre" e del "figlio";   e.g. 'Cefotaxime (meningitis)'
+				$parent_antimicrobic_name = extract_parent_name($child_full_name);		// e.g. Cefotaxime
+				$child_antimicrobic_name = extract_child_name($child_full_name);		// e.g. meningitis
 				
 				$child_number_tested = $this->antimicrobics->get($max_child_idx)->get_number_tested();
 				$parent_number_tested = $this->antimicrobics->get($parent_antimicrobic_idx)->get_number_tested();
@@ -90,7 +89,31 @@ class Data {
 
 			}			
 			$parent_antimicrobic_idx = $i;
+			$parent_antimicrobic_name = $this->antimicrobics->get($i)->get_name();
 		}
+	}
+	
+	// Funzione di servizio per merge_duplicates()
+	function extract_parent_name($full_antimicrobic_name) {
+		$start = strpos($full_antimicrobic_name, '(');
+		
+		if ($start === false)
+			return $full_antimicrobic_name;
+			
+		// Estrae il nome del "padre" (prima delle parentesi)
+		return trim( substr($full_antimicrobic_name, 0, $start) );		
+	}
+	
+	// Funzione di servizio per merge_duplicates()
+	function extract_child_name($full_antimicrobic_name) {
+		$start = strpos($full_antimicrobic_name, '(');
+		$end = strpos($full_antimicrobic_name, ')', $start);
+		
+		if ($start === false || $end === false)
+			return "";
+		
+		// Estrae il nome del "padre" (prima delle parentesi)
+		return trim( substr($full_antimicrobic_name, $start+1, $end-$start-1) );
 	}
 	
 	
@@ -250,12 +273,11 @@ class Antimicrobic {
 	}
 	
 	public function set_value($tick, $value) {
-		if (!isset($this->value[$tick]) || !is_numeric($value))
-			return false;
-		
 		// Replace asterisk (used as a marker in the source document)
 		$value = str_replace('*', '', $value);
-		
+		if (!isset($this->value[$tick]) || !is_numeric($value))
+			return false;
+
 		$this->value[$tick] = $value;
 		return true;
 	}
@@ -285,7 +307,7 @@ class Antimicrobic {
 		return $this->number_tested;
 	}
 	
-	public function set_number_tested($number_tested) {
+	public function set_number_tested($number_tested) {	
 		$this->number_tested = $number_tested;
 	}
 	

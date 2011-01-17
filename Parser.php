@@ -75,7 +75,6 @@ class Parser {
 						$burst_end = true;
 					// End - sanity check			
 								
-						
 					if ($tick == '#Tested')
 						$antimicrobic->set_number_tested($parsed_value);
 					else
